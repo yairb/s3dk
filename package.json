@@ -1,0 +1,14 @@
+{
+    "name": "Elements3d",
+    "version": "0.1.0",
+    "author": "Yair Barak",
+    "description": "Inspect android apps 3d",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron ."
+    },
+    "dependencies": {
+        "appium-adb": "^8.12.2",
+        "xml2js": "^0.4.23"
+    }
+}

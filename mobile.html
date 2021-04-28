@@ -11,6 +11,14 @@
 
   </script>
   <style>
+  #legend {
+    position: absolute;
+    z-index: 99;
+    left: 0%;
+    width: 10%;
+    display: block;
+    bottom: 0%;
+  }
     #goBtn {
       position: absolute;
       z-index: 99;
@@ -210,15 +218,19 @@
       let size = queue.length
       for (var i = 0; i < size; i++) {
         var node = queue.shift()
+        const colors = [0xeb3a34, 0xdeeb34, 0x34eb37]
+        var index = ((Math.round(node.grade) % 9) / 3) % 3
+
+        let color = colors[index]
         var box = createBox(objWidth, objHeight, node.rect.x, node.rect.y, node.rect.width,
-          node.rect.height, level, img, 0x00ff00);
+          node.rect.height, level, img, color);
         box.userData = { tag : 'WM', id : node.id };
         group.add(box);
-          if (node.children) {
-            for (var j = 0; j < node.children.length; j++) {
-              queue.push(node.children[j])
-            }
+        if (node.children) {
+          for (var j = 0; j < node.children.length; j++) {
+            queue.push(node.children[j])
           }
+        }
       }
       level++
     }
@@ -243,5 +255,10 @@
   </script>
 
   <button id="goBtn" onclick="go()">Go</button>
+  <div id="legend">
+    <span style="background: #eb3a34; width: 100%">Bad   </span>
+    <span style="background: #deeb34; width: 100%">Medium</span>
+    <span style="background: #34eb37; width: 100%">Good  </span>
+  </div>
 </body>
 </html>

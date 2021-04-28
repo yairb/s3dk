@@ -159,8 +159,10 @@
         var node = queue.shift()
         group.add(createBox(objWidth, objHeight, node.rect.x, node.rect.y, node.rect.width,
           node.rect.height, level, img, 0x00ff00));
-        for (var j = 0; j < node.children.length; j++) {
-          queue.push(node.children[j])
+        if (node.children) {
+          for (var j = 0; j < node.children.length; j++) {
+            queue.push(node.children[j])
+          }
         }
       }
       level++

@@ -45,16 +45,54 @@
   let scene, renderer, camera;
   let cube;
   let controls;
+  var raycaster = new THREE.Raycaster();
+  var mouse = new THREE.Vector2();
+  var currentObj = null;
+  var prevColor = null;
   const bottomOffset = 4;
   init();
   animate();
+  function onClick(event) {
+      event.preventDefault();
+
+      mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+      mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      var intersects = raycaster.intersectObjects(scene.children, true);
+      if (intersects[0] == undefined || intersects[0] == null || intersects[0].object.userData.tag != 'WM') {
+        return
+      }
+      console.log(intersects[0].object.userData)
+      if (currentObj != null) {
+        currentObj.material[0].color.set(prevColor);
+      }
+      if (currentObj == intersects[0].object) {
+        currentObj = null;
+      } else {
+        currentObj = intersects[0].object
+        prevColor = currentObj.material[0].color.getHex()
+        currentObj.material[0].color.set(0xff0000)
+      }
+      var goBtn = document.getElementById("goBtn");
+      if (currentObj != null) {
+        goBtn.style.display = 'block';
+      } else {
+        goBtn.style.display = 'none';
+      }
+
+  }
+  window.addEventListener('click', onClick);
+
   var group;
   function createBox(objWidth, objHeight, x, y, width, height, depth, image, color) {
+    const offset = 0.02
     const widthRatio = image.width / objWidth;
     const heightRatio = image.height / objHeight;
 
-    const boxWidth = width / widthRatio;
-    const boxHeight = height / heightRatio;
+    const boxWidth = width / widthRatio - 2 * offset;
+    const boxHeight = height / heightRatio - 2 * offset;
 
     const boxDepth = 0.1;
     const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
@@ -67,13 +105,15 @@
     context.drawImage( image, x, y, width, height, 0, 0, width, height);
 
     const material = new THREE.MeshBasicMaterial({
-      map: loader.load(canvas.toDataURL('image/jpeg')),
+      map: loader.load(canvas.toDataURL('image/png')),
     });
     var color = new THREE.MeshBasicMaterial({color: color});
     var white = new THREE.MeshBasicMaterial({color: 0xffffff});
     cube = new THREE.Mesh(geometry, [color, color, white, white, material, color]);
 
-    cube.position.set (x / widthRatio + boxWidth / 2 - objWidth / 2,  objHeight - (boxHeight) / 2 - y / heightRatio - bottomOffset, depth * (boxDepth + 0.1));
+    cube.position.set (offset + x / widthRatio + boxWidth / 2 - objWidth / 2,
+      offset + objHeight - (boxHeight) / 2 - y / heightRatio - bottomOffset,
+      depth * (boxDepth + 0.1));
     return cube;
   }
 
@@ -157,13 +197,15 @@
       let size = queue.length
       for (var i = 0; i < size; i++) {
         var node = queue.shift()
-        group.add(createBox(objWidth, objHeight, node.rect.x, node.rect.y, node.rect.width,
-          node.rect.height, level, img, 0x00ff00));
-        if (node.children) {
-          for (var j = 0; j < node.children.length; j++) {
-            queue.push(node.children[j])
+        var box = createBox(objWidth, objHeight, node.rect.x, node.rect.y, node.rect.width,
+          node.rect.height, level, img, 0x00ff00);
+        box.userData = { tag : 'WM', id : node.id };
+        group.add(box);
+          if (node.children) {
+            for (var j = 0; j < node.children.length; j++) {
+              queue.push(node.children[j])
+            }
           }
-        }
       }
       level++
     }
@@ -174,7 +216,19 @@
       requestAnimationFrame ( animate );
       renderer.render (scene, camera);
   }
+
+  function go() {
+    if (window.webkit != undefined) {
+        if (window.webkit.messageHandlers.setElementId != undefined) {
+            window.webkit.messageHandlers.setElementId.postMessage(currentObj.userData.id)
+        }
+    }
+    if (window.setElementId != undefined) {
+        window.setElementId.postMessage(currentObj.userData.id)
+    }
+  }
   </script>
 
+  <button id="goBtn" onclick="go()" style="display:none">Go</button>
 </body>
 </html>

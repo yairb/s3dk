@@ -87,14 +87,14 @@
       }
       console.log(intersects[0].object.userData)
       if (currentObj != null) {
-        currentObj.material[0].color.set(prevColor);
+        currentObj.material[4].color.set(prevColor);
       }
       if (currentObj == intersects[0].object) {
         currentObj = null;
       } else {
         currentObj = intersects[0].object
-        prevColor = currentObj.material[0].color.getHex()
-        currentObj.material[0].color.set(0xff0000)
+        prevColor = currentObj.material[4].color.getHex()
+        currentObj.material[4].color.set(0xff0000)
       }
       var goBtn = document.getElementById("goBtn");
       if (currentObj != null) {
@@ -172,7 +172,8 @@
       const objWidth = 4;
       const objHeight = objWidth * (img.height / img.width);
 
-      createElements(data, group, img, objWidth, objHeight)
+      var topLevel = createElements(data, group, img, objWidth, objHeight)
+      camera.position.z = topLevel * 0.3 + 5;
 
       scene.add(group);
     }
@@ -219,7 +220,12 @@
       for (var i = 0; i < size; i++) {
         var node = queue.shift()
         const colors = [0xeb3a34, 0xdeeb34, 0x34eb37]
-        var index = ((Math.round(node.grade) % 9) / 3) % 3
+        var index = 0
+        if (node.grade > 7) {
+          index = 2
+        } else if (node.grade > 3) {
+          index = 1
+        }
 
         let color = colors[index]
         var box = createBox(objWidth, objHeight, node.rect.x, node.rect.y, node.rect.width,
@@ -234,6 +240,8 @@
       }
       level++
     }
+
+    return level
   }
 
   function animate() {
